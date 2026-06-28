@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { RatingSelector } from "@/components/RatingSelector";
 import { Card, Input, Select, Textarea } from "@/components/ui";
@@ -64,8 +64,11 @@ export function EventRating({
   const [query, setQuery] = useState("");
   const [lang, setLang] = useState<"all" | "de" | "fr">("all");
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Recruits currently being edited locally (don't let live updates clobber them).
+  const editing = useRef<Record<string, boolean>>({});
 
   const patch = useCallback((recruitId: string, partial: Partial<Entry>) => {
+    if (!stateRef.current[recruitId]) return;
     const nextEntry = { ...stateRef.current[recruitId], ...partial };
     const nextState = { ...stateRef.current, [recruitId]: nextEntry };
     stateRef.current = nextState;
@@ -86,9 +89,10 @@ export function EventRating({
           score: payload.score,
           bemerkungen: payload.bemerkungen.trim() ? payload.bemerkungen : null,
         },
-        { onConflict: "event_id,recruit_id,evaluator_id" },
+        { onConflict: "event_id,recruit_id" },
       );
       patch(recruitId, { ratingStatus: error ? "error" : "saved" });
+      editing.current[recruitId] = false;
     },
     [supabase, eventId, userId, patch],
   );
@@ -117,6 +121,7 @@ export function EventRating({
   };
 
   const onBemerkungen = (recruitId: string, value: string) => {
+    editing.current[recruitId] = true;
     patch(recruitId, { bemerkungen: value, ratingStatus: "idle" });
     clearTimeout(timers.current[recruitId]);
     timers.current[recruitId] = setTimeout(() => {
@@ -131,6 +136,61 @@ export function EventRating({
   const onAttendance = (recruitId: string, present: boolean) => {
     void saveAttendance(recruitId, present);
   };
+
+  // Live sync: apply other users' rating/attendance changes for this event.
+  useEffect(() => {
+    const ids = new Set(recruits.map((r) => r.id));
+    const channel = supabase
+      .channel(`event-${eventId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ratings",
+          filter: `event_id=eq.${eventId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            recruit_id?: string;
+            evaluator_id?: string;
+            score?: number | null;
+            bemerkungen?: string | null;
+          };
+          if (!row?.recruit_id || !ids.has(row.recruit_id)) return;
+          if (row.evaluator_id === userId) return; // my own change
+          if (editing.current[row.recruit_id]) return; // I'm editing this one
+          patch(row.recruit_id, {
+            score: row.score ?? null,
+            bemerkungen: row.bemerkungen ?? "",
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "attendance",
+          filter: `event_id=eq.${eventId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            recruit_id?: string;
+            updated_by?: string;
+            present?: boolean;
+          };
+          if (!row?.recruit_id || !ids.has(row.recruit_id)) return;
+          if (row.updated_by === userId) return; // my own change
+          patch(row.recruit_id, { present: row.present ?? null });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, eventId, userId, recruits, patch]);
 
   const visible = recruits.filter(
     (r) =>

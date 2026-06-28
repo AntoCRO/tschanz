@@ -9,8 +9,8 @@ export default async function RecruitsPage() {
   const supabase = await createClient();
   const { data: recruits } = await supabase
     .from("recruits")
-    .select("id, name, language, is_active")
-    .order("is_active", { ascending: false })
+    .select("id, name, language")
+    .eq("is_active", true)
     .order("name");
 
   return (

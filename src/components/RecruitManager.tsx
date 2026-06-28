@@ -7,20 +7,18 @@ import {
   deleteRecruit,
   type RecruitFormState,
 } from "@/lib/actions/recruits";
-import { Badge, Button, Input, Label, Select } from "@/components/ui";
+import { Button, Input, Label, Select } from "@/components/ui";
 import { Modal } from "@/components/Modal";
 import { Flag } from "@/components/Flag";
 import { PencilIcon, TrashIcon } from "@/components/icons";
 import { useLanguage } from "@/components/LanguageProvider";
 import { recruitLangLabel } from "@/lib/i18n";
 import { LANGUAGES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 type RecruitRow = {
   id: string;
   name: string;
   language: string;
-  is_active: boolean;
 };
 
 type FormMode =
@@ -85,12 +83,7 @@ export function RecruitManager({ recruits }: { recruits: RecruitRow[] }) {
         <ol className="space-y-2">
           {visible.map((r, i) => (
             <li key={r.id}>
-              <div
-                className={cn(
-                  "flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm",
-                  !r.is_active && "opacity-60",
-                )}
-              >
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="w-6 shrink-0 text-right text-sm tabular-nums text-slate-400">
                     {i + 1}.
@@ -99,11 +92,6 @@ export function RecruitManager({ recruits }: { recruits: RecruitRow[] }) {
                     {r.name}
                   </span>
                   <Flag lang={r.language} />
-                  {!r.is_active && (
-                    <Badge className="bg-amber-100 text-amber-700">
-                      {t("recruits.inactive")}
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <Button

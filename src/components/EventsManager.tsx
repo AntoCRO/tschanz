@@ -9,6 +9,7 @@ import {
   type EventFormState,
 } from "@/lib/actions/events";
 import { Button, Card, Input, Label, Select } from "@/components/ui";
+import { TrashIcon } from "@/components/icons";
 import { useT } from "@/components/LanguageProvider";
 import { formatEventDateTime, isoWeekRange } from "@/lib/utils";
 
@@ -202,7 +203,8 @@ export function EventsManager({
                         }}
                       >
                         <input type="hidden" name="id" value={ev.id} />
-                        <Button size="sm" variant="ghost" type="submit">
+                        <Button size="sm" variant="danger" type="submit">
+                          <TrashIcon className="h-4 w-4" />
                           {t("common.delete")}
                         </Button>
                       </form>

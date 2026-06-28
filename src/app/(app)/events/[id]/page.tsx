@@ -29,11 +29,11 @@ export default async function EventDetailPage({
     .eq("is_active", true)
     .order("name");
 
+  // Shared ratings: load everyone's (one per recruit), not just the current user's.
   const { data: ratings } = await supabase
     .from("ratings")
     .select("recruit_id, score, bemerkungen")
-    .eq("event_id", id)
-    .eq("evaluator_id", ctx.user.id);
+    .eq("event_id", id);
 
   const { data: attendance } = await supabase
     .from("attendance")

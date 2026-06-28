@@ -119,15 +119,15 @@ export function RecruitManager({ recruits }: { recruits: RecruitRow[] }) {
                       size="sm"
                       variant="danger"
                       type="submit"
-                      aria-label={t("recruits.deactivate")}
-                      title={t("recruits.deactivate")}
+                      aria-label={t("common.delete")}
+                      title={t("common.delete")}
                     >
                       {/* Icon on phones, text on larger screens */}
                       <span className="sm:hidden">
                         <TrashIcon />
                       </span>
                       <span className="hidden sm:inline">
-                        {t("recruits.deactivate")}
+                        {t("common.delete")}
                       </span>
                     </Button>
                   </form>

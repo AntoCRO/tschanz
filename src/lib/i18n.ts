@@ -102,10 +102,7 @@ const de = {
   "recruits.editTitle": "Rekrut bearbeiten",
   "recruits.empty": "Noch keine Rekruten erfasst.",
   "recruits.noMatch": "Keine Rekruten gefunden.",
-  "recruits.inactive": "inaktiv",
-  "recruits.deactivate": "Abrüsten",
-  "recruits.activate": "Aktivieren",
-  "recruits.deleteConfirm": "Rekrut „{name}“ wirklich entfernen? Alle Bewertungen dieses Rekruten werden gelöscht.",
+  "recruits.deleteConfirm": "Rekrut „{name}“ wirklich löschen? Der Rekrut und alle seine Bewertungen werden dauerhaft aus der Datenbank entfernt.",
   "recruits.search": "Rekrut suchen…",
   "recruits.count": "{shown}/{total} Rekruten",
 
@@ -246,10 +243,7 @@ const fr = {
   "recruits.editTitle": "Modifier la recrue",
   "recruits.empty": "Aucune recrue enregistrée.",
   "recruits.noMatch": "Aucune recrue trouvée.",
-  "recruits.inactive": "inactif",
-  "recruits.deactivate": "Démobiliser",
-  "recruits.activate": "Activer",
-  "recruits.deleteConfirm": "Supprimer définitivement la recrue « {name} » ? Toutes ses évaluations seront supprimées.",
+  "recruits.deleteConfirm": "Supprimer définitivement la recrue « {name} » ? La recrue et toutes ses évaluations seront supprimées de la base de données.",
   "recruits.search": "Rechercher une recrue…",
   "recruits.count": "{shown}/{total} recrues",
 

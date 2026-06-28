@@ -131,7 +131,6 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
-          is_active: boolean
           language: string
           name: string
         }
@@ -139,7 +138,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          is_active?: boolean
           language: string
           name: string
         }
@@ -147,7 +145,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          is_active?: boolean
           language?: string
           name?: string
         }

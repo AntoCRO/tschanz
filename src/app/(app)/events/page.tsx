@@ -25,15 +25,12 @@ export default async function EventsPage() {
     .order("event_date", { ascending: false })
     .order("event_time", { ascending: false });
 
-  // Active recruits are the denominator (and the only ones that count).
-  const { data: activeRecruits } = await supabase
-    .from("recruits")
-    .select("id")
-    .eq("is_active", true);
-  const activeIds = new Set((activeRecruits ?? []).map((r) => r.id));
-  const recruitCount = activeIds.size;
+  // The whole roster is the denominator.
+  const { data: allRecruits } = await supabase.from("recruits").select("id");
+  const recruitIds = new Set((allRecruits ?? []).map((r) => r.id));
+  const recruitCount = recruitIds.size;
 
-  // Shared progress: count active recruits that have a rating — by ANYONE.
+  // Shared progress: count recruits that have a rating — by ANYONE.
   const { data: scoredRatings } = await supabase
     .from("ratings")
     .select("event_id, recruit_id")
@@ -46,7 +43,7 @@ export default async function EventsPage() {
 
   const ratedByEvent: Record<string, number> = {};
   for (const r of scoredRatings ?? []) {
-    if (!activeIds.has(r.recruit_id)) continue;
+    if (!recruitIds.has(r.recruit_id)) continue;
     ratedByEvent[r.event_id] = (ratedByEvent[r.event_id] ?? 0) + 1;
   }
 

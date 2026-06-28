@@ -66,8 +66,15 @@ export async function deleteRecruit(formData: FormData): Promise<void> {
   if (!id) return;
 
   const supabase = await createClient();
-  // Hard delete: cascades to this recruit's ratings + attendance.
-  await supabase.from("recruits").delete().eq("id", id);
+  // Remove dependent rows first, so the delete succeeds even if the DB
+  // foreign keys aren't set to ON DELETE CASCADE.
+  await supabase.from("ratings").delete().eq("recruit_id", id);
+  await supabase.from("attendance").delete().eq("recruit_id", id);
+  const { error } = await supabase.from("recruits").delete().eq("id", id);
+  if (error) {
+    console.error("deleteRecruit failed:", error.message);
+    throw new Error(error.message);
+  }
   revalidatePath("/admin/recruits");
   revalidatePath("/events");
 }

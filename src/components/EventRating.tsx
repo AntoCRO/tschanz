@@ -91,6 +91,7 @@ export function EventRating({
         },
         { onConflict: "event_id,recruit_id" },
       );
+      if (error) console.error("saveRating failed:", error.message);
       patch(recruitId, { ratingStatus: error ? "error" : "saved" });
       editing.current[recruitId] = false;
     },
@@ -109,6 +110,7 @@ export function EventRating({
         },
         { onConflict: "event_id,recruit_id" },
       );
+      if (error) console.error("saveAttendance failed:", error.message);
       patch(recruitId, { attStatus: error ? "error" : "saved" });
     },
     [supabase, eventId, userId, patch],

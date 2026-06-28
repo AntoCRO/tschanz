@@ -10,7 +10,6 @@ export default async function RecruitsPage() {
   const { data: recruits } = await supabase
     .from("recruits")
     .select("id, name, language")
-    .eq("is_active", true)
     .order("name");
 
   return (

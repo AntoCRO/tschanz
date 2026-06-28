@@ -73,7 +73,7 @@ const de = {
   "events.titlePlaceholder": "z. B. Lektion 1",
   "events.create": "Lektion erstellen",
   "events.search": "Lektion suchen…",
-  "events.progressLabel": "Mein Fortschritt",
+  "events.progressLabel": "Fortschritt",
   "events.chefNone": "Kein Chef",
   "events.chefPrefix": "Chef",
 
@@ -105,6 +105,7 @@ const de = {
   "recruits.inactive": "inaktiv",
   "recruits.deactivate": "Abrüsten",
   "recruits.activate": "Aktivieren",
+  "recruits.deleteConfirm": "Rekrut „{name}“ wirklich entfernen? Alle Bewertungen dieses Rekruten werden gelöscht.",
   "recruits.search": "Rekrut suchen…",
   "recruits.count": "{shown}/{total} Rekruten",
 
@@ -216,7 +217,7 @@ const fr = {
   "events.titlePlaceholder": "p. ex. Leçon 1",
   "events.create": "Créer la leçon",
   "events.search": "Rechercher une leçon…",
-  "events.progressLabel": "Ma progression",
+  "events.progressLabel": "Progression",
   "events.chefNone": "Aucun chef",
   "events.chefPrefix": "Chef",
 
@@ -248,6 +249,7 @@ const fr = {
   "recruits.inactive": "inactif",
   "recruits.deactivate": "Démobiliser",
   "recruits.activate": "Activer",
+  "recruits.deleteConfirm": "Supprimer définitivement la recrue « {name} » ? Toutes ses évaluations seront supprimées.",
   "recruits.search": "Rechercher une recrue…",
   "recruits.count": "{shown}/{total} recrues",
 

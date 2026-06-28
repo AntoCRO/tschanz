@@ -4,13 +4,13 @@ import { useActionState, useEffect, useState } from "react";
 import {
   createRecruit,
   updateRecruit,
-  setRecruitActive,
+  deleteRecruit,
   type RecruitFormState,
 } from "@/lib/actions/recruits";
 import { Badge, Button, Input, Label, Select } from "@/components/ui";
 import { Modal } from "@/components/Modal";
 import { Flag } from "@/components/Flag";
-import { PencilIcon, StandDownIcon, ActivateIcon } from "@/components/icons";
+import { PencilIcon, TrashIcon } from "@/components/icons";
 import { useLanguage } from "@/components/LanguageProvider";
 import { recruitLangLabel } from "@/lib/i18n";
 import { LANGUAGES } from "@/lib/constants";
@@ -115,36 +115,31 @@ export function RecruitManager({ recruits }: { recruits: RecruitRow[] }) {
                   >
                     <PencilIcon />
                   </Button>
-                  <form action={setRecruitActive}>
+                  <form
+                    action={deleteRecruit}
+                    onSubmit={(e) => {
+                      if (
+                        !window.confirm(
+                          t("recruits.deleteConfirm", { name: r.name }),
+                        )
+                      )
+                        e.preventDefault();
+                    }}
+                  >
                     <input type="hidden" name="id" value={r.id} />
-                    <input
-                      type="hidden"
-                      name="is_active"
-                      value={(!r.is_active).toString()}
-                    />
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="danger"
                       type="submit"
-                      aria-label={
-                        r.is_active
-                          ? t("recruits.deactivate")
-                          : t("recruits.activate")
-                      }
-                      title={
-                        r.is_active
-                          ? t("recruits.deactivate")
-                          : t("recruits.activate")
-                      }
+                      aria-label={t("recruits.deactivate")}
+                      title={t("recruits.deactivate")}
                     >
                       {/* Icon on phones, text on larger screens */}
                       <span className="sm:hidden">
-                        {r.is_active ? <StandDownIcon /> : <ActivateIcon />}
+                        <TrashIcon />
                       </span>
                       <span className="hidden sm:inline">
-                        {r.is_active
-                          ? t("recruits.deactivate")
-                          : t("recruits.activate")}
+                        {t("recruits.deactivate")}
                       </span>
                     </Button>
                   </form>

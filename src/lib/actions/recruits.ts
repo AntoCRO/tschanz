@@ -58,15 +58,16 @@ export async function updateRecruit(
   return { ok: true };
 }
 
-export async function setRecruitActive(formData: FormData): Promise<void> {
+export async function deleteRecruit(formData: FormData): Promise<void> {
   const ctx = await getAuth();
   if (!ctx) return;
 
   const id = String(formData.get("id") ?? "");
-  const is_active = String(formData.get("is_active") ?? "") === "true";
   if (!id) return;
 
   const supabase = await createClient();
-  await supabase.from("recruits").update({ is_active }).eq("id", id);
+  // Hard delete: cascades to this recruit's ratings + attendance.
+  await supabase.from("recruits").delete().eq("id", id);
   revalidatePath("/admin/recruits");
+  revalidatePath("/events");
 }

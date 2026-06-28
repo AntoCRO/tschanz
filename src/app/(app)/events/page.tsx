@@ -13,7 +13,7 @@ type EventRaw = {
 };
 
 export default async function EventsPage() {
-  const ctx = await requireUser();
+  await requireUser();
   const t = await getServerT();
   const supabase = await createClient();
 
@@ -25,15 +25,18 @@ export default async function EventsPage() {
     .order("event_date", { ascending: false })
     .order("event_time", { ascending: false });
 
-  const { count: recruitCount } = await supabase
+  // Active recruits are the denominator (and the only ones that count).
+  const { data: activeRecruits } = await supabase
     .from("recruits")
-    .select("id", { count: "exact", head: true })
+    .select("id")
     .eq("is_active", true);
+  const activeIds = new Set((activeRecruits ?? []).map((r) => r.id));
+  const recruitCount = activeIds.size;
 
-  const { data: myRatings } = await supabase
+  // Shared progress: count active recruits that have a rating — by ANYONE.
+  const { data: scoredRatings } = await supabase
     .from("ratings")
-    .select("event_id")
-    .eq("evaluator_id", ctx.user.id)
+    .select("event_id, recruit_id")
     .not("score", "is", null);
 
   const { data: membersData } = await supabase
@@ -42,7 +45,8 @@ export default async function EventsPage() {
     .order("full_name");
 
   const ratedByEvent: Record<string, number> = {};
-  for (const r of myRatings ?? []) {
+  for (const r of scoredRatings ?? []) {
+    if (!activeIds.has(r.recruit_id)) continue;
     ratedByEvent[r.event_id] = (ratedByEvent[r.event_id] ?? 0) + 1;
   }
 
@@ -55,7 +59,7 @@ export default async function EventsPage() {
     chef_id: e.chef_id,
     chefName: e.chef?.full_name || e.chef?.email || null,
     done: ratedByEvent[e.id] ?? 0,
-    total: recruitCount ?? 0,
+    total: recruitCount,
   }));
 
   const members = (membersData ?? []).map((m) => ({

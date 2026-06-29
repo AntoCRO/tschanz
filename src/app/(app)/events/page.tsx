@@ -25,9 +25,12 @@ export default async function EventsPage() {
     .order("event_date", { ascending: false })
     .order("event_time", { ascending: false });
 
-  // The whole roster is the denominator.
-  const { data: allRecruits } = await supabase.from("recruits").select("id");
-  const recruitIds = new Set((allRecruits ?? []).map((r) => r.id));
+  // Active recruits are the denominator.
+  const { data: activeRecruits } = await supabase
+    .from("recruits")
+    .select("id")
+    .eq("is_active", true);
+  const recruitIds = new Set((activeRecruits ?? []).map((r) => r.id));
   const recruitCount = recruitIds.size;
 
   // Shared progress: count recruits that have a rating — by ANYONE.

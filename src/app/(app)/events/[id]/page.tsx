@@ -26,6 +26,7 @@ export default async function EventDetailPage({
   const { data: recruits } = await supabase
     .from("recruits")
     .select("id, name, language")
+    .eq("is_active", true)
     .order("name");
 
   // Shared ratings: load everyone's (one per recruit), not just the current user's.

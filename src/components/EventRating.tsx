@@ -81,16 +81,29 @@ export function EventRating({
       payload: { score: number | null; bemerkungen: string },
     ) => {
       patch(recruitId, { ratingStatus: "saving" });
-      const { error } = await supabase.from("ratings").upsert(
-        {
-          event_id: eventId,
-          recruit_id: recruitId,
-          evaluator_id: userId,
-          score: payload.score,
-          bemerkungen: payload.bemerkungen.trim() ? payload.bemerkungen : null,
-        },
-        { onConflict: "event_id,recruit_id" },
-      );
+      const row = {
+        event_id: eventId,
+        recruit_id: recruitId,
+        evaluator_id: userId,
+        score: payload.score,
+        bemerkungen: payload.bemerkungen.trim() ? payload.bemerkungen : null,
+      };
+      // Preferred path: upsert on the shared (event_id, recruit_id) key.
+      let { error } = await supabase
+        .from("ratings")
+        .upsert(row, { onConflict: "event_id,recruit_id" });
+      // Fallback for a DB without that unique constraint: update-or-insert.
+      if (error) {
+        const { data: existing } = await supabase
+          .from("ratings")
+          .select("id")
+          .eq("event_id", eventId)
+          .eq("recruit_id", recruitId)
+          .maybeSingle();
+        ({ error } = existing
+          ? await supabase.from("ratings").update(row).eq("id", existing.id)
+          : await supabase.from("ratings").insert(row));
+      }
       if (error) console.error("saveRating failed:", error.message);
       patch(recruitId, { ratingStatus: error ? "error" : "saved" });
       editing.current[recruitId] = false;
@@ -101,15 +114,26 @@ export function EventRating({
   const saveAttendance = useCallback(
     async (recruitId: string, present: boolean) => {
       patch(recruitId, { attStatus: "saving", present });
-      const { error } = await supabase.from("attendance").upsert(
-        {
-          event_id: eventId,
-          recruit_id: recruitId,
-          present,
-          updated_by: userId,
-        },
-        { onConflict: "event_id,recruit_id" },
-      );
+      const row = {
+        event_id: eventId,
+        recruit_id: recruitId,
+        present,
+        updated_by: userId,
+      };
+      let { error } = await supabase
+        .from("attendance")
+        .upsert(row, { onConflict: "event_id,recruit_id" });
+      if (error) {
+        const { data: existing } = await supabase
+          .from("attendance")
+          .select("id")
+          .eq("event_id", eventId)
+          .eq("recruit_id", recruitId)
+          .maybeSingle();
+        ({ error } = existing
+          ? await supabase.from("attendance").update(row).eq("id", existing.id)
+          : await supabase.from("attendance").insert(row));
+      }
       if (error) console.error("saveAttendance failed:", error.message);
       patch(recruitId, { attStatus: error ? "error" : "saved" });
     },

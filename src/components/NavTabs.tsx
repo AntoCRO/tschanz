@@ -14,6 +14,7 @@ export function NavTabs() {
     { href: "/events", label: t("nav.events") },
     { href: "/admin/recruits", label: t("nav.recruits") },
     { href: "/admin/team", label: t("nav.team") },
+    { href: "/sidequests", label: t("nav.sidequest") },
   ];
 
   return (

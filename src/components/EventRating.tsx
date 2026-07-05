@@ -142,6 +142,7 @@ export function EventRating({
 
   const onScore = (recruitId: string, score: number) => {
     const cur = stateRef.current[recruitId];
+    if (!cur) return;
     patch(recruitId, { score });
     void saveRating(recruitId, { score, bemerkungen: cur.bemerkungen });
   };

@@ -126,6 +126,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sidequests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          done: boolean
+          due_date: string
+          due_time: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          done?: boolean
+          due_date: string
+          due_time: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          done?: boolean
+          due_date?: string
+          due_time?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       recruits: {
         Row: {
           created_at: string

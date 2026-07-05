@@ -30,8 +30,11 @@ export async function inviteTeamMember(
     return { error: t("invite.notConfigured") };
   }
 
+  // Prefer the configured site URL: Origin/Host come from the client and a
+  // forged Host header must not end up in invite emails.
   const h = await headers();
   const origin =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
     h.get("origin") ??
     (h.get("host") ? `https://${h.get("host")}` : "http://localhost:3000");
 

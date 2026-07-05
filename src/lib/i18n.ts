@@ -8,6 +8,7 @@ const de = {
   "nav.events": "Lektionen",
   "nav.recruits": "Rekruten",
   "nav.team": "Team",
+  "nav.sidequest": "Sidequest",
   "header.admin": "Admin",
   "header.logout": "Abmelden",
 
@@ -119,6 +120,26 @@ const de = {
   "role.admin": "Admin",
   "role.evaluator": "Bewerter",
 
+  // Sidequests
+  "sq.title": "Sidequest",
+  "sq.subtitle": "Aufgaben mit Frist – für das ganze Team.",
+  "sq.new": "Neue Aufgabe",
+  "sq.newButton": "+ Neue Aufgabe",
+  "sq.create": "Aufgabe erstellen",
+  "sq.titlePlaceholder": "z. B. Material vorbereiten",
+  "sq.descPlaceholder": "Details (optional)…",
+  "sq.dueBy": "Zu erledigen bis",
+  "sq.dueLabel": "Fällig: {datetime}",
+  "sq.overdue": "Überfällig",
+  "sq.done": "Erledigt",
+  "sq.markDone": "Als erledigt markieren",
+  "sq.markOpen": "Wieder öffnen",
+  "sq.empty": "Noch keine Aufgaben erfasst.",
+  "sq.deleteConfirm": "Aufgabe „{title}“ wirklich löschen?",
+  "field.description": "Beschreibung",
+  "err.sqTitleReq": "Titel ist erforderlich.",
+  "err.sqDueReq": "Datum und Zeit sind erforderlich.",
+
   // Action errors / messages
   "err.credentials": "Bitte E-Mail und Passwort eingeben.",
   "err.loginFailed": "E-Mail oder Passwort ist falsch.",
@@ -148,6 +169,7 @@ const fr = {
   "nav.events": "Leçons",
   "nav.recruits": "Recrues",
   "nav.team": "Équipe",
+  "nav.sidequest": "Sidequest",
   "header.admin": "Admin",
   "header.logout": "Se déconnecter",
 
@@ -259,6 +281,26 @@ const fr = {
   "team.empty": "Aucun membre.",
   "role.admin": "Admin",
   "role.evaluator": "Évaluateur",
+
+  // Sidequests
+  "sq.title": "Sidequest",
+  "sq.subtitle": "Tâches avec échéance – pour toute l’équipe.",
+  "sq.new": "Nouvelle tâche",
+  "sq.newButton": "+ Nouvelle tâche",
+  "sq.create": "Créer la tâche",
+  "sq.titlePlaceholder": "p. ex. Préparer le matériel",
+  "sq.descPlaceholder": "Détails (facultatif)…",
+  "sq.dueBy": "À terminer avant le",
+  "sq.dueLabel": "Échéance : {datetime}",
+  "sq.overdue": "En retard",
+  "sq.done": "Terminé",
+  "sq.markDone": "Marquer comme terminé",
+  "sq.markOpen": "Rouvrir",
+  "sq.empty": "Aucune tâche pour l’instant.",
+  "sq.deleteConfirm": "Supprimer la tâche « {title} » ?",
+  "field.description": "Description",
+  "err.sqTitleReq": "Le titre est obligatoire.",
+  "err.sqDueReq": "La date et l’heure sont obligatoires.",
 
   // Action errors / messages
   "err.credentials": "Veuillez saisir l’e-mail et le mot de passe.",

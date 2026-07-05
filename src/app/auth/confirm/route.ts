@@ -12,7 +12,13 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
-  const next = searchParams.get("next");
+  const nextParam = searchParams.get("next");
+  // Only allow same-site paths as a redirect target ("/x", not "//host" or
+  // absolute URLs), so a crafted link can't send users to another site.
+  const next =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : null;
 
   const supabase = await createClient();
   let verified = false;

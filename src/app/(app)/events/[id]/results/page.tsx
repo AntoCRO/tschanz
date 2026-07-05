@@ -40,6 +40,7 @@ export default async function ResultsPage({
   const { data: recruits } = await supabase
     .from("recruits")
     .select("id, name, language")
+    .eq("is_active", true)
     .order("name");
 
   const { data: ratings } = await supabase

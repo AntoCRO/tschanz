@@ -3,11 +3,14 @@
 -- Run once in Supabase → SQL Editor → New query → paste → Run.
 -- Safe to run multiple times (idempotent).
 --
--- Fixes three things:
+-- What this fixes / sets up:
 --   1) Ratings won't save  -> the upsert needs a UNIQUE (event_id, recruit_id)
 --      constraint, and open RLS so anyone can edit the shared rating.
 --   2) Deleting a recruit  -> open RLS + ON DELETE CASCADE on child rows.
 --   3) "Inactive" recruits -> purge the leftover deactivated rows.
+--   4) Attendance upsert   -> UNIQUE (event_id, recruit_id) on attendance too.
+--   5) Score integrity     -> CHECK constraint keeps scores in 1..5.
+--   6) Sidequests          -> new table for the SIDEQUEST tab (team to-dos).
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -117,3 +120,53 @@ begin
   exception when duplicate_object then null;
   end;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- 6) Attendance: the app upserts on (event_id, recruit_id) — that needs the
+--    same UNIQUE constraint ratings already got (de-duplicate first).
+-- ---------------------------------------------------------------------------
+delete from public.attendance a
+using public.attendance b
+where a.event_id = b.event_id
+  and a.recruit_id = b.recruit_id
+  and (a.updated_at < b.updated_at
+       or (a.updated_at = b.updated_at and a.id > b.id));
+
+do $$
+begin
+  alter table public.attendance
+    add constraint attendance_event_recruit_key unique (event_id, recruit_id);
+exception when duplicate_table or duplicate_object then null;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 7) Ratings: enforce the 1..5 scale in the database, not only in the UI.
+-- ---------------------------------------------------------------------------
+update public.ratings set score = null where score not between 1 and 5;
+
+do $$
+begin
+  alter table public.ratings
+    add constraint ratings_score_range check (score is null or score between 1 and 5);
+exception when duplicate_object then null;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 8) Sidequests: shared team to-dos with a deadline (date + time).
+-- ---------------------------------------------------------------------------
+create table if not exists public.sidequests (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  due_date date not null,
+  due_time time not null,
+  done boolean not null default false,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.sidequests enable row level security;
+
+drop policy if exists "authenticated_all" on public.sidequests;
+create policy "authenticated_all" on public.sidequests
+  for all to authenticated using (true) with check (true);

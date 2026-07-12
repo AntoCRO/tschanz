@@ -15,6 +15,7 @@ export function NavTabs() {
     { href: "/admin/recruits", label: t("nav.recruits") },
     { href: "/admin/team", label: t("nav.team") },
     { href: "/sidequests", label: t("nav.sidequest") },
+    { href: "/bestellungen", label: t("nav.orders") },
   ];
 
   return (

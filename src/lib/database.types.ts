@@ -69,6 +69,48 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          category: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          done: boolean
+          id: string
+          items: Json
+          needed_date: string
+          needed_time: string
+        }
+        Insert: {
+          category: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          done?: boolean
+          id?: string
+          items?: Json
+          needed_date: string
+          needed_time: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          done?: boolean
+          id?: string
+          items?: Json
+          needed_date?: string
+          needed_time?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

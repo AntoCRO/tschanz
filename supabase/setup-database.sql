@@ -78,6 +78,32 @@ create table if not exists public.sidequests (
   created_at timestamptz not null default now()
 );
 
+-- Erste (nie produktiv genutzte) orders-Version hatte title/needed_by statt
+-- items/needed_date/needed_time — falls vorhanden, ersetzen.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'orders' and column_name = 'title'
+  ) then
+    drop table public.orders;
+  end if;
+end $$;
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('munition', 'material', 'fahrzeug', 'platz', 'zwipf')),
+  items jsonb not null default '[]'::jsonb,
+  description text,
+  needed_date date not null,
+  needed_time time not null,
+  done boolean not null default false,
+  completed_by uuid references public.profiles (id) on delete set null,
+  completed_at timestamptz,
+  created_by uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
 -- 3) updated_at automatisch pflegen (für die Upsert-Tabellen).
 create or replace function public.tschanz_touch_updated_at()
 returns trigger
@@ -107,6 +133,7 @@ alter table public.events     enable row level security;
 alter table public.ratings    enable row level security;
 alter table public.attendance enable row level security;
 alter table public.sidequests enable row level security;
+alter table public.orders     enable row level security;
 
 drop policy if exists "authenticated_all" on public.recruits;
 create policy "authenticated_all" on public.recruits
@@ -122,6 +149,9 @@ create policy "authenticated_all" on public.attendance
   for all to authenticated using (true) with check (true);
 drop policy if exists "authenticated_all" on public.sidequests;
 create policy "authenticated_all" on public.sidequests
+  for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated_all" on public.orders;
+create policy "authenticated_all" on public.orders
   for all to authenticated using (true) with check (true);
 
 -- 5) Realtime: andere Geräte sehen Bewertungs-/Anwesenheits-Änderungen live.

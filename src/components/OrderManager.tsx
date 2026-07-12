@@ -258,32 +258,35 @@ function OrderForm({ onDone }: { onDone: () => void }) {
         <Label>{t("orders.items")}</Label>
         <div className="space-y-2">
           <div className="flex gap-2 text-xs font-medium text-slate-500">
-            <span className="w-24">{t("orders.qty")}</span>
+            <span className="w-24 shrink-0">{t("orders.qty")}</span>
             <span className="flex-1">{t("field.name")}</span>
-            <span className="w-9" aria-hidden="true" />
+            <span className="w-10 shrink-0" aria-hidden="true" />
           </div>
           {rows.map((key) => (
-            <div key={key} className="flex gap-2">
-              <Input
-                name="item_quantity"
-                type="number"
-                min={1}
-                step={1}
-                required
-                className="w-24"
-                aria-label={t("orders.qty")}
-              />
-              <Input
-                name="item_name"
-                required
-                className="flex-1"
-                placeholder={t("orders.itemPlaceholder")}
-                aria-label={t("field.name")}
-              />
+            <div key={key} className="flex items-center gap-2">
+              <div className="w-24 shrink-0">
+                <Input
+                  name="item_quantity"
+                  type="number"
+                  min={1}
+                  step={1}
+                  required
+                  aria-label={t("orders.qty")}
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  name="item_name"
+                  required
+                  placeholder={t("orders.itemPlaceholder")}
+                  aria-label={t("field.name")}
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
-                className="h-11 w-9 shrink-0 px-0"
+                size="sm"
+                className="h-11 shrink-0"
                 onClick={() => removeRow(key)}
                 disabled={rows.length === 1}
                 aria-label={t("orders.removeItem")}

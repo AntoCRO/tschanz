@@ -14,6 +14,20 @@ export function ratingLabel(score: number | null | undefined): string {
   return RATING_OPTIONS.find((o) => o.value === score)?.label ?? String(score);
 }
 
+/** Order categories for the Bestellungen tab (stored as text in public.orders). */
+export const ORDER_CATEGORIES = [
+  "munition",
+  "material",
+  "fahrzeug",
+  "platz",
+  "zwipf",
+] as const;
+
+export type OrderCategory = (typeof ORDER_CATEGORIES)[number];
+
+/** One line of an order: how many of what (stored as jsonb array in public.orders.items). */
+export type OrderItem = { quantity: number; name: string };
+
 export const LANGUAGES = [
   { value: "de", label: "Deutsch", short: "DE" },
   { value: "fr", label: "Französisch", short: "FR" },

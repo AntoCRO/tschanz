@@ -5,20 +5,33 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuth } from "@/lib/auth";
 import { getServerT } from "@/lib/locale";
 import { ORDER_CATEGORIES, type OrderItem } from "@/lib/constants";
+import type { TranslationKey } from "@/lib/i18n";
 
 export type OrderFormState = { error?: string; ok?: boolean } | undefined;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}(:\d{2})?$/;
 
-export async function createOrder(
-  _prev: OrderFormState,
-  formData: FormData,
-): Promise<OrderFormState> {
-  const t = await getServerT();
-  const ctx = await getAuth();
-  if (!ctx) return { error: t("err.notAllowed") };
+// Revalidate the whole layout so the open-orders badge in the nav
+// updates on every page, not just /bestellungen.
+function revalidateOrders() {
+  revalidatePath("/", "layout");
+}
 
+type Translate = (key: TranslationKey) => string;
+
+function parseOrderFields(
+  formData: FormData,
+  t: Translate,
+):
+  | { error: string }
+  | {
+      category: string;
+      items: OrderItem[];
+      description: string | null;
+      needed_date: string;
+      needed_time: string;
+    } {
   const category = String(formData.get("category") ?? "");
   const description = String(formData.get("description") ?? "").trim();
   const needed_date = String(formData.get("needed_date") ?? "");
@@ -47,18 +60,56 @@ export async function createOrder(
     return { error: t("err.orderDueReq") };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("orders").insert({
+  return {
     category,
     items,
     description: description || null,
     needed_date,
     needed_time,
+  };
+}
+
+export async function createOrder(
+  _prev: OrderFormState,
+  formData: FormData,
+): Promise<OrderFormState> {
+  const t = await getServerT();
+  const ctx = await getAuth();
+  if (!ctx) return { error: t("err.notAllowed") };
+
+  const parsed = parseOrderFields(formData, t);
+  if ("error" in parsed) return parsed;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("orders").insert({
+    ...parsed,
     created_by: ctx.user.id,
   });
   if (error) return { error: error.message };
 
-  revalidatePath("/bestellungen");
+  revalidateOrders();
+  return { ok: true };
+}
+
+export async function updateOrder(
+  _prev: OrderFormState,
+  formData: FormData,
+): Promise<OrderFormState> {
+  const t = await getServerT();
+  const ctx = await getAuth();
+  if (!ctx) return { error: t("err.notAllowed") };
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: t("err.notAllowed") };
+
+  const parsed = parseOrderFields(formData, t);
+  if ("error" in parsed) return parsed;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("orders").update(parsed).eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidateOrders();
   return { ok: true };
 }
 
@@ -80,7 +131,7 @@ export async function toggleOrder(formData: FormData): Promise<void> {
     : { done: false, completed_by: null, completed_at: null };
   const { error } = await supabase.from("orders").update(patch).eq("id", id);
   if (error) console.error("toggleOrder failed:", error.message);
-  revalidatePath("/bestellungen");
+  revalidateOrders();
 }
 
 export async function deleteOrder(formData: FormData): Promise<void> {
@@ -96,5 +147,24 @@ export async function deleteOrder(formData: FormData): Promise<void> {
     console.error("deleteOrder failed:", error.message);
     throw new Error(error.message);
   }
+  revalidateOrders();
+}
+
+/** Admin only: assign (or clear) the responsible person for a category. */
+export async function setOrderResponsible(formData: FormData): Promise<void> {
+  const ctx = await getAuth();
+  if (!ctx || ctx.profile?.role !== "admin") return;
+
+  const category = String(formData.get("category") ?? "");
+  const profileId = String(formData.get("profile_id") ?? "");
+  if (!(ORDER_CATEGORIES as readonly string[]).includes(category)) return;
+
+  const supabase = await createClient();
+  const { error } = profileId
+    ? await supabase
+        .from("order_responsibles")
+        .upsert({ category, profile_id: profileId })
+    : await supabase.from("order_responsibles").delete().eq("category", category);
+  if (error) console.error("setOrderResponsible failed:", error.message);
   revalidatePath("/bestellungen");
 }

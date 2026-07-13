@@ -33,10 +33,13 @@ export async function GET(request: NextRequest) {
 
   if (verified) {
     // New users (invite / recovery) must set a password first.
+    // Invitees set up their account; recovery users set a new password.
     const dest =
-      type === "invite" || type === "recovery"
+      type === "invite"
         ? "/accept-invite"
-        : (next ?? "/events");
+        : type === "recovery"
+          ? "/reset-password"
+          : (next ?? "/events");
     return NextResponse.redirect(`${origin}${dest}`);
   }
 

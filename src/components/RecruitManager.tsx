@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import {
   createRecruit,
@@ -88,9 +89,12 @@ export function RecruitManager({ recruits }: { recruits: RecruitRow[] }) {
                   <span className="w-6 shrink-0 text-right text-sm tabular-nums text-slate-400">
                     {i + 1}.
                   </span>
-                  <span className="truncate font-medium text-slate-900">
+                  <Link
+                    href={`/admin/recruits/${r.id}`}
+                    className="truncate font-medium text-slate-900 hover:underline"
+                  >
                     {r.name}
-                  </span>
+                  </Link>
                   <Flag lang={r.language} />
                 </div>
                 <div className="flex shrink-0 items-center gap-1">

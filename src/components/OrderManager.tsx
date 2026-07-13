@@ -3,8 +3,10 @@
 import { useActionState, useEffect, useState } from "react";
 import {
   createOrder,
+  updateOrder,
   toggleOrder,
   deleteOrder,
+  setOrderResponsible,
   type OrderFormState,
 } from "@/lib/actions/orders";
 import {
@@ -39,6 +41,8 @@ type OrderRow = {
   completerName: string | null;
 };
 
+type Member = { id: string; name: string };
+
 const CATEGORY_BADGE: Record<OrderCategory, string> = {
   munition: "bg-amber-100 text-amber-800",
   material: "bg-blue-100 text-blue-700",
@@ -52,20 +56,50 @@ function isOverdue(o: OrderRow): boolean {
   return !o.done && needed.getTime() < Date.now();
 }
 
-export function OrderManager({ orders }: { orders: OrderRow[] }) {
+export function OrderManager({
+  orders,
+  members,
+  responsibles,
+  isAdmin,
+  myId,
+}: {
+  orders: OrderRow[];
+  members: Member[];
+  responsibles: Record<string, string>;
+  isAdmin: boolean;
+  myId: string;
+}) {
   const t = useT();
   const [creating, setCreating] = useState(false);
-  const [filter, setFilter] = useState<OrderCategory | "all">("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<OrderCategory | "all" | "mine">("all");
+
+  const memberName = new Map(members.map((m) => [m.id, m.name]));
+  const myCategories = ORDER_CATEGORIES.filter(
+    (c) => responsibles[c] === myId,
+  );
 
   const shown =
-    filter === "all" ? orders : orders.filter((o) => o.category === filter);
+    filter === "all"
+      ? orders
+      : filter === "mine"
+        ? orders.filter((o) =>
+            (myCategories as readonly string[]).includes(o.category),
+          )
+        : orders.filter((o) => o.category === filter);
+
+  const pills: ("all" | "mine" | OrderCategory)[] = [
+    "all",
+    ...(myCategories.length > 0 ? (["mine"] as const) : []),
+    ...ORDER_CATEGORIES,
+  ];
 
   return (
     <div className="space-y-4">
       {creating ? (
         <Card className="p-4">
           <h2 className="mb-3 font-medium text-slate-900">{t("orders.new")}</h2>
-          <OrderForm onDone={() => setCreating(false)} />
+          <OrderForm mode="create" onDone={() => setCreating(false)} />
         </Card>
       ) : (
         <Button onClick={() => setCreating(true)}>
@@ -74,7 +108,7 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
       )}
 
       <div className="flex flex-wrap gap-1">
-        {(["all", ...ORDER_CATEGORIES] as const).map((c) => (
+        {pills.map((c) => (
           <button
             key={c}
             type="button"
@@ -86,7 +120,11 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
                 : "text-slate-600 hover:bg-slate-200",
             )}
           >
-            {c === "all" ? t("filter.all") : t(`cat.${c}`)}
+            {c === "all"
+              ? t("filter.all")
+              : c === "mine"
+                ? t("orders.mine")
+                : t(`cat.${c}`)}
           </button>
         ))}
       </div>
@@ -102,7 +140,24 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
       ) : (
         <ul className="space-y-3">
           {shown.map((o) => {
+            if (editingId === o.id) {
+              return (
+                <li key={o.id}>
+                  <Card className="p-4">
+                    <h2 className="mb-3 font-medium text-slate-900">
+                      {t("orders.edit")}
+                    </h2>
+                    <OrderForm
+                      mode="edit"
+                      initial={o}
+                      onDone={() => setEditingId(null)}
+                    />
+                  </Card>
+                </li>
+              );
+            }
             const overdue = isOverdue(o);
+            const respId = responsibles[o.category];
             return (
               <li key={o.id}>
                 <Card className={cn("p-4", o.done && "opacity-60")}>
@@ -166,6 +221,13 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
                           date: formatEventDate(o.created_at.slice(0, 10)),
                         })}
                       </p>
+                      {respId && (
+                        <p className="text-sm text-slate-500">
+                          {t("orders.responsible", {
+                            name: memberName.get(respId) ?? t("common.dash"),
+                          })}
+                        </p>
+                      )}
                       {o.description && (
                         <p className="mt-1 text-sm whitespace-pre-line text-slate-700">
                           {o.description}
@@ -196,6 +258,16 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
                           {o.done ? t("orders.markOpen") : t("orders.markDone")}
                         </Button>
                       </form>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setCreating(false);
+                          setEditingId(o.id);
+                        }}
+                      >
+                        {t("common.edit")}
+                      </Button>
                       <form
                         action={deleteOrder}
                         onSubmit={(e) => {
@@ -217,33 +289,100 @@ export function OrderManager({ orders }: { orders: OrderRow[] }) {
           })}
         </ul>
       )}
+
+      {isAdmin && (
+        <Card className="p-4">
+          <h2 className="mb-3 font-medium text-slate-900">
+            {t("orders.responsibles")}
+          </h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {ORDER_CATEGORIES.map((c) => (
+              <form
+                key={c}
+                action={setOrderResponsible}
+                className="flex items-center gap-2"
+              >
+                <input type="hidden" name="category" value={c} />
+                <Badge
+                  className={cn(
+                    "w-24 shrink-0 justify-center",
+                    CATEGORY_BADGE[c],
+                  )}
+                >
+                  {t(`cat.${c}`)}
+                </Badge>
+                <Select
+                  name="profile_id"
+                  defaultValue={responsibles[c] ?? ""}
+                  onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                  className="h-10 flex-1"
+                  aria-label={t(`cat.${c}`)}
+                >
+                  <option value="">{t("common.dash")}</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </Select>
+              </form>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
 
-function OrderForm({ onDone }: { onDone: () => void }) {
+type ItemRowState = { key: number; quantity?: number; name?: string };
+
+function OrderForm({
+  mode,
+  initial,
+  onDone,
+}: {
+  mode: "create" | "edit";
+  initial?: OrderRow;
+  onDone: () => void;
+}) {
   const t = useT();
+  const action = mode === "create" ? createOrder : updateOrder;
   const [state, formAction, pending] = useActionState<OrderFormState, FormData>(
-    createOrder,
+    action,
     undefined,
   );
   // Row keys for the item table (inputs stay uncontrolled).
-  const [rows, setRows] = useState<number[]>([0]);
+  const [rows, setRows] = useState<ItemRowState[]>(() =>
+    initial && initial.items.length > 0
+      ? initial.items.map((it, i) => ({ key: i, ...it }))
+      : [{ key: 0 }],
+  );
 
   useEffect(() => {
     if (state?.ok) onDone();
   }, [state, onDone]);
 
   const addRow = () =>
-    setRows((r) => [...r, (r.length ? Math.max(...r) : 0) + 1]);
+    setRows((r) => [
+      ...r,
+      { key: (r.length ? Math.max(...r.map((x) => x.key)) : 0) + 1 },
+    ]);
   const removeRow = (key: number) =>
-    setRows((r) => (r.length > 1 ? r.filter((k) => k !== key) : r));
+    setRows((r) => (r.length > 1 ? r.filter((x) => x.key !== key) : r));
 
   return (
     <form action={formAction} className="space-y-3">
+      {mode === "edit" && (
+        <input type="hidden" name="id" value={initial!.id} />
+      )}
       <div>
         <Label htmlFor="order-category">{t("orders.category")}</Label>
-        <Select id="order-category" name="category" required defaultValue="">
+        <Select
+          id="order-category"
+          name="category"
+          required
+          defaultValue={initial?.category ?? ""}
+        >
           <option value="" disabled>
             {t("orders.chooseCategory")}
           </option>
@@ -262,8 +401,8 @@ function OrderForm({ onDone }: { onDone: () => void }) {
             <span className="flex-1">{t("field.name")}</span>
             <span className="w-10 shrink-0" aria-hidden="true" />
           </div>
-          {rows.map((key) => (
-            <div key={key} className="flex items-center gap-2">
+          {rows.map((row) => (
+            <div key={row.key} className="flex items-center gap-2">
               <div className="w-24 shrink-0">
                 <Input
                   name="item_quantity"
@@ -271,6 +410,7 @@ function OrderForm({ onDone }: { onDone: () => void }) {
                   min={1}
                   step={1}
                   required
+                  defaultValue={row.quantity}
                   aria-label={t("orders.qty")}
                 />
               </div>
@@ -278,6 +418,7 @@ function OrderForm({ onDone }: { onDone: () => void }) {
                 <Input
                   name="item_name"
                   required
+                  defaultValue={row.name}
                   placeholder={t("orders.itemPlaceholder")}
                   aria-label={t("field.name")}
                 />
@@ -287,7 +428,7 @@ function OrderForm({ onDone }: { onDone: () => void }) {
                 variant="ghost"
                 size="sm"
                 className="h-11 shrink-0"
-                onClick={() => removeRow(key)}
+                onClick={() => removeRow(row.key)}
                 disabled={rows.length === 1}
                 aria-label={t("orders.removeItem")}
               >
@@ -308,6 +449,7 @@ function OrderForm({ onDone }: { onDone: () => void }) {
               name="needed_date"
               type="date"
               required
+              defaultValue={initial?.needed_date}
               aria-label={t("field.date")}
             />
           </div>
@@ -316,6 +458,7 @@ function OrderForm({ onDone }: { onDone: () => void }) {
               name="needed_time"
               type="time"
               required
+              defaultValue={initial?.needed_time?.slice(0, 5)}
               aria-label={t("field.time")}
             />
           </div>
@@ -327,13 +470,14 @@ function OrderForm({ onDone }: { onDone: () => void }) {
           id="order-description"
           name="description"
           rows={3}
+          defaultValue={initial?.description ?? ""}
           placeholder={t("orders.descPlaceholder")}
         />
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       <div className="flex gap-2">
         <Button type="submit" disabled={pending}>
-          {t("orders.create")}
+          {mode === "create" ? t("orders.create") : t("common.save")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>
           {t("common.cancel")}

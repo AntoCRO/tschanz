@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { login } from "@/lib/actions/auth";
 import { Button, Input, Label, Spinner } from "@/components/ui";
@@ -42,6 +43,14 @@ export function LoginForm() {
           t("login.submit")
         )}
       </Button>
+      <p className="text-center text-sm">
+        <Link
+          href="/auth/forgot-password"
+          className="text-slate-500 hover:underline"
+        >
+          {t("login.forgot")}
+        </Link>
+      </p>
     </form>
   );
 }

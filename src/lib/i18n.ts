@@ -20,6 +20,7 @@ const de = {
   "common.cancel": "Abbrechen",
   "common.add": "Hinzufügen",
   "common.backToEvents": "← Lektionen",
+  "common.backToRecruits": "← Rekruten",
   "common.dash": "–",
 
   // Fields
@@ -53,6 +54,21 @@ const de = {
   "login.invalidLink": "Der Einladungs-/Anmeldelink ist ungültig oder abgelaufen.",
   "login.submit": "Anmelden",
   "login.submitting": "Anmelden…",
+  "login.forgot": "Passwort vergessen?",
+
+  // Passwort zurücksetzen
+  "forgot.title": "Passwort vergessen",
+  "forgot.subtitle":
+    "Gib deine E-Mail ein – du erhältst einen Link, um ein neues Passwort zu setzen.",
+  "forgot.submit": "Link senden",
+  "forgot.submitting": "Senden…",
+  "forgot.sent":
+    "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet. Prüfe auch den Spam-Ordner.",
+  "forgot.backToLogin": "← Zur Anmeldung",
+  "reset.title": "Neues Passwort setzen",
+  "reset.subtitle": "Wähle ein neues Passwort für dein Konto.",
+  "reset.submit": "Passwort speichern",
+  "reset.submitting": "Speichern…",
 
   // Accept invite
   "invite.title": "Konto einrichten",
@@ -109,6 +125,20 @@ const de = {
   "recruits.deleteConfirm": "Rekrut „{name}“ wirklich löschen? Der Rekrut und alle seine Bewertungen werden dauerhaft aus der Datenbank entfernt.",
   "recruits.search": "Rekrut suchen…",
   "recruits.count": "{shown}/{total} Rekruten",
+
+  // Rekruten-Profil + Export
+  "profile.subtitle": "Gesamtübersicht über alle Lektionen.",
+  "profile.avg": "Durchschnitt",
+  "profile.ratingsCount": "Bewertungen",
+  "profile.absences": "Absenzen",
+  "profile.empty": "Noch keine Bewertungen oder Absenzen erfasst.",
+  "export.csv": "Excel (CSV)",
+  "export.print": "Drucken / PDF",
+  "export.recruit": "Rekrut",
+  "export.lesson": "Lektion",
+  "export.attendance": "Anwesenheit",
+  "export.score": "Bewertung",
+  "bewerten.remarksHeader": "Bemerkungen",
 
   // Team
   "team.title": "Team",
@@ -169,6 +199,10 @@ const de = {
   "orders.empty": "Noch keine Bestellungen erfasst.",
   "orders.noMatch": "Keine Bestellungen in dieser Kategorie.",
   "orders.deleteConfirm": "Diese Bestellung wirklich löschen?",
+  "orders.edit": "Bestellung bearbeiten",
+  "orders.mine": "Meine",
+  "orders.responsibles": "Verantwortliche",
+  "orders.responsible": "Verantwortlich: {name}",
   "cat.munition": "Munition",
   "cat.material": "Material",
   "cat.fahrzeug": "Fahrzeug",
@@ -220,6 +254,7 @@ const fr = {
   "common.cancel": "Annuler",
   "common.add": "Ajouter",
   "common.backToEvents": "← Leçons",
+  "common.backToRecruits": "← Recrues",
   "common.dash": "–",
 
   // Fields
@@ -254,6 +289,21 @@ const fr = {
     "Le lien d’invitation/de connexion est invalide ou expiré.",
   "login.submit": "Se connecter",
   "login.submitting": "Connexion…",
+  "login.forgot": "Mot de passe oublié ?",
+
+  // Réinitialisation du mot de passe
+  "forgot.title": "Mot de passe oublié",
+  "forgot.subtitle":
+    "Saisis ton e-mail – tu recevras un lien pour définir un nouveau mot de passe.",
+  "forgot.submit": "Envoyer le lien",
+  "forgot.submitting": "Envoi…",
+  "forgot.sent":
+    "Si un compte existe avec cet e-mail, un lien de réinitialisation a été envoyé. Vérifie aussi le dossier spam.",
+  "forgot.backToLogin": "← Retour à la connexion",
+  "reset.title": "Définir un nouveau mot de passe",
+  "reset.subtitle": "Choisis un nouveau mot de passe pour ton compte.",
+  "reset.submit": "Enregistrer le mot de passe",
+  "reset.submitting": "Enregistrement…",
 
   // Accept invite
   "invite.title": "Configurer le compte",
@@ -310,6 +360,20 @@ const fr = {
   "recruits.deleteConfirm": "Supprimer définitivement la recrue « {name} » ? La recrue et toutes ses évaluations seront supprimées de la base de données.",
   "recruits.search": "Rechercher une recrue…",
   "recruits.count": "{shown}/{total} recrues",
+
+  // Rekruten-Profil + Export
+  "profile.subtitle": "Vue d’ensemble de toutes les leçons.",
+  "profile.avg": "Moyenne",
+  "profile.ratingsCount": "Évaluations",
+  "profile.absences": "Absences",
+  "profile.empty": "Aucune évaluation ni absence pour l’instant.",
+  "export.csv": "Excel (CSV)",
+  "export.print": "Imprimer / PDF",
+  "export.recruit": "Recrue",
+  "export.lesson": "Leçon",
+  "export.attendance": "Présence",
+  "export.score": "Évaluation",
+  "bewerten.remarksHeader": "Remarques",
 
   // Team
   "team.title": "Équipe",
@@ -370,6 +434,10 @@ const fr = {
   "orders.empty": "Aucune commande pour l’instant.",
   "orders.noMatch": "Aucune commande dans cette catégorie.",
   "orders.deleteConfirm": "Supprimer cette commande ?",
+  "orders.edit": "Modifier la commande",
+  "orders.mine": "Les miennes",
+  "orders.responsibles": "Responsables",
+  "orders.responsible": "Responsable : {name}",
   "cat.munition": "Munition",
   "cat.material": "Matériel",
   "cat.fahrzeug": "Véhicule",

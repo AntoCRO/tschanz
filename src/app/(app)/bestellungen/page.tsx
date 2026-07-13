@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { requireUser, isAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getServerT } from "@/lib/locale";
 import { OrderManager } from "@/components/OrderManager";
@@ -19,18 +19,23 @@ type OrderRaw = {
 };
 
 export default async function BestellungenPage() {
-  await requireUser();
+  const ctx = await requireUser();
   const t = await getServerT();
   const supabase = await createClient();
 
-  const { data: ordersRaw } = await supabase
-    .from("orders")
-    .select(
-      "id, category, items, description, needed_date, needed_time, done, created_at, completed_at, creator:profiles!orders_created_by_fkey(full_name, email), completer:profiles!orders_completed_by_fkey(full_name, email)",
-    )
-    .order("done", { ascending: true })
-    .order("needed_date", { ascending: true })
-    .order("needed_time", { ascending: true });
+  const [{ data: ordersRaw }, { data: membersData }, { data: respData }] =
+    await Promise.all([
+      supabase
+        .from("orders")
+        .select(
+          "id, category, items, description, needed_date, needed_time, done, created_at, completed_at, creator:profiles!orders_created_by_fkey(full_name, email), completer:profiles!orders_completed_by_fkey(full_name, email)",
+        )
+        .order("done", { ascending: true })
+        .order("needed_date", { ascending: true })
+        .order("needed_time", { ascending: true }),
+      supabase.from("profiles").select("id, full_name, email").order("full_name"),
+      supabase.from("order_responsibles").select("category, profile_id"),
+    ]);
 
   const rows = (ordersRaw ?? []) as unknown as OrderRaw[];
   const orders = rows.map((o) => ({
@@ -47,6 +52,14 @@ export default async function BestellungenPage() {
     completerName: o.completer?.full_name || o.completer?.email || null,
   }));
 
+  const members = (membersData ?? []).map((m) => ({
+    id: m.id,
+    name: m.full_name || m.email || "—",
+  }));
+
+  const responsibles: Record<string, string> = {};
+  for (const r of respData ?? []) responsibles[r.category] = r.profile_id;
+
   return (
     <div className="space-y-5">
       <div>
@@ -55,7 +68,13 @@ export default async function BestellungenPage() {
         </h1>
         <p className="text-sm text-slate-500">{t("orders.subtitle")}</p>
       </div>
-      <OrderManager orders={orders} />
+      <OrderManager
+        orders={orders}
+        members={members}
+        responsibles={responsibles}
+        isAdmin={isAdmin(ctx)}
+        myId={ctx.user.id}
+      />
     </div>
   );
 }

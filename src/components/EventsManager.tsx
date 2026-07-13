@@ -40,7 +40,10 @@ export function EventsManager({
   const [search, setSearch] = useState("");
   const [day, setDay] = useState("");
   const [week, setWeek] = useState("");
-  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  // Default: chronological (passed Lektionen first, then upcoming) and
+  // fully rated Lektionen hidden.
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
+  const [openOnly, setOpenOnly] = useState(true);
 
   const filtered = useMemo(() => {
     const wr = week ? isoWeekRange(week) : null;
@@ -50,13 +53,14 @@ export function EventsManager({
       )
       .filter((e) => !day || e.event_date === day)
       .filter((e) => !wr || (e.event_date >= wr.start && e.event_date <= wr.end))
+      .filter((e) => !openOnly || e.total === 0 || e.done < e.total)
       .slice()
       .sort((a, b) => {
         const ka = `${a.event_date}T${a.event_time}`;
         const kb = `${b.event_date}T${b.event_time}`;
         return sortDir === "asc" ? ka.localeCompare(kb) : kb.localeCompare(ka);
       });
-  }, [events, search, day, week, sortDir]);
+  }, [events, search, day, week, sortDir, openOnly]);
 
   const hasFilter = Boolean(search || day || week);
 
@@ -112,10 +116,19 @@ export function EventsManager({
               onChange={(e) => setSortDir(e.target.value as "desc" | "asc")}
               className="h-10"
             >
-              <option value="desc">{t("filter.newest")}</option>
               <option value="asc">{t("filter.oldest")}</option>
+              <option value="desc">{t("filter.newest")}</option>
             </Select>
           </div>
+          <label className="flex h-10 cursor-pointer items-center gap-2 text-sm font-medium text-slate-700 select-none">
+            <input
+              type="checkbox"
+              checked={openOnly}
+              onChange={(e) => setOpenOnly(e.target.checked)}
+              className="h-4 w-4 accent-slate-900"
+            />
+            {t("filter.openOnly")}
+          </label>
           {hasFilter && (
             <Button
               variant="ghost"
@@ -138,7 +151,7 @@ export function EventsManager({
         </p>
       ) : filtered.length === 0 ? (
         <p className="py-12 text-center text-sm text-slate-400">
-          {t("events.noMatch")}
+          {openOnly && !hasFilter ? t("events.allDone") : t("events.noMatch")}
         </p>
       ) : (
         <ul className="space-y-3">

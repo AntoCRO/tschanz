@@ -164,7 +164,28 @@ drop policy if exists "authenticated_all" on public.order_responsibles;
 create policy "authenticated_all" on public.order_responsibles
   for all to authenticated using (true) with check (true);
 
--- 5) Realtime: andere Geräte sehen Bewertungs-/Anwesenheits-Änderungen live.
+-- 5) Performance: Indizes fürs Rekruten-Profil + aggregierte Fortschritts-View
+-- für die Lektionen-Liste (statt alle Bewertungen/Absenzen zu laden).
+create index if not exists ratings_recruit_idx on public.ratings (recruit_id);
+create index if not exists attendance_recruit_idx on public.attendance (recruit_id);
+
+create or replace view public.event_progress
+with (security_invoker = on) as
+select
+  e.id as event_id,
+  count(distinct c.recruit_id) filter (where rc.is_active) as covered
+from public.events e
+left join (
+  select event_id, recruit_id from public.ratings where score is not null
+  union
+  select event_id, recruit_id from public.attendance where present = false
+) c on c.event_id = e.id
+left join public.recruits rc on rc.id = c.recruit_id
+group by e.id;
+
+grant select on public.event_progress to authenticated;
+
+-- 6) Realtime: andere Geräte sehen Bewertungs-/Anwesenheits-Änderungen live.
 do $$
 begin
   begin

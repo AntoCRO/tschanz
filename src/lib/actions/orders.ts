@@ -151,20 +151,29 @@ export async function deleteOrder(formData: FormData): Promise<void> {
 }
 
 /** Admin only: assign (or clear) the responsible person for a category. */
-export async function setOrderResponsible(formData: FormData): Promise<void> {
+export async function setOrderResponsible(
+  category: string,
+  profileId: string,
+): Promise<{ error?: string }> {
+  const t = await getServerT();
   const ctx = await getAuth();
-  if (!ctx || ctx.profile?.role !== "admin") return;
-
-  const category = String(formData.get("category") ?? "");
-  const profileId = String(formData.get("profile_id") ?? "");
-  if (!(ORDER_CATEGORIES as readonly string[]).includes(category)) return;
+  if (!ctx) return { error: t("err.notAllowed") };
+  if (ctx.profile?.role !== "admin") return { error: t("err.adminOnly") };
+  if (!(ORDER_CATEGORIES as readonly string[]).includes(category)) {
+    return { error: t("err.orderCatReq") };
+  }
 
   const supabase = await createClient();
   const { error } = profileId
     ? await supabase
         .from("order_responsibles")
         .upsert({ category, profile_id: profileId })
-    : await supabase.from("order_responsibles").delete().eq("category", category);
-  if (error) console.error("setOrderResponsible failed:", error.message);
+    : await supabase
+        .from("order_responsibles")
+        .delete()
+        .eq("category", category);
+  if (error) return { error: error.message };
+
   revalidatePath("/bestellungen");
+  return {};
 }

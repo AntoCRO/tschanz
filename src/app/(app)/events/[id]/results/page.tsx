@@ -31,30 +31,30 @@ export default async function ResultsPage({
   const t = await getServerT();
   const supabase = await createClient();
 
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, title, event_date, event_time")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: event }, { data: recruits }, { data: ratings }, { data: attendance }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("id, title, event_date, event_time")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("recruits")
+        .select("id, name, language")
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("ratings")
+        .select(
+          "recruit_id, score, bemerkungen, evaluator:profiles!ratings_evaluator_id_fkey(full_name, email)",
+        )
+        .eq("event_id", id),
+      supabase
+        .from("attendance")
+        .select("recruit_id, present")
+        .eq("event_id", id),
+    ]);
   if (!event) notFound();
-
-  const { data: recruits } = await supabase
-    .from("recruits")
-    .select("id, name, language")
-    .eq("is_active", true)
-    .order("name");
-
-  const { data: ratings } = await supabase
-    .from("ratings")
-    .select(
-      "recruit_id, score, bemerkungen, evaluator:profiles!ratings_evaluator_id_fkey(full_name, email)",
-    )
-    .eq("event_id", id);
-
-  const { data: attendance } = await supabase
-    .from("attendance")
-    .select("recruit_id, present")
-    .eq("event_id", id);
   const presenceByRecruit = new Map<string, boolean>();
   for (const a of attendance ?? [])
     presenceByRecruit.set(a.recruit_id, a.present);

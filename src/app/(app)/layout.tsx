@@ -9,16 +9,17 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const ctx = await requireUser();
-  const locale = await getLocale();
-  const name = ctx.profile?.full_name || ctx.user.email || "";
-
-  // Open orders → badge on the Bestellungen tab.
   const supabase = await createClient();
-  const { count } = await supabase
-    .from("orders")
-    .select("id", { count: "exact", head: true })
-    .eq("done", false);
+  // Auth check, locale cookie and badge count in parallel.
+  const [ctx, locale, { count }] = await Promise.all([
+    requireUser(),
+    getLocale(),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("done", false),
+  ]);
+  const name = ctx.profile?.full_name || ctx.user.email || "";
 
   return (
     <LanguageProvider initialLocale={locale}>

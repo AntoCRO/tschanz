@@ -26,15 +26,13 @@ export default async function RecruitProfilePage({
   const t = await getServerT();
   const supabase = await createClient();
 
-  const { data: recruit } = await supabase
-    .from("recruits")
-    .select("id, name, language, is_active")
-    .eq("id", id)
-    .maybeSingle();
-  if (!recruit) notFound();
-
-  const [{ data: events }, { data: ratingsRaw }, { data: attendance }] =
+  const [{ data: recruit }, { data: events }, { data: ratingsRaw }, { data: attendance }] =
     await Promise.all([
+      supabase
+        .from("recruits")
+        .select("id, name, language, is_active")
+        .eq("id", id)
+        .maybeSingle(),
       supabase
         .from("events")
         .select("id, title, event_date, event_time")
@@ -51,6 +49,7 @@ export default async function RecruitProfilePage({
         .select("event_id, present")
         .eq("recruit_id", id),
     ]);
+  if (!recruit) notFound();
 
   const ratings = (ratingsRaw ?? []) as unknown as RatingRaw[];
   const ratingsByEvent = new Map<string, RatingRaw[]>();

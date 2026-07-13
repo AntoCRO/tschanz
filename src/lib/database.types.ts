@@ -245,7 +245,13 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      event_progress: {
+        Row: {
+          covered: number | null
+          event_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }

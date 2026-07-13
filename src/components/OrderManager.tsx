@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import {
   createOrder,
   updateOrder,
@@ -291,46 +291,70 @@ export function OrderManager({
       )}
 
       {isAdmin && (
-        <Card className="p-4">
-          <h2 className="mb-3 font-medium text-slate-900">
-            {t("orders.responsibles")}
-          </h2>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {ORDER_CATEGORIES.map((c) => (
-              <form
-                key={c}
-                action={setOrderResponsible}
-                className="flex items-center gap-2"
-              >
-                <input type="hidden" name="category" value={c} />
-                <Badge
-                  className={cn(
-                    "w-24 shrink-0 justify-center",
-                    CATEGORY_BADGE[c],
-                  )}
-                >
-                  {t(`cat.${c}`)}
-                </Badge>
-                <Select
-                  name="profile_id"
-                  defaultValue={responsibles[c] ?? ""}
-                  onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className="h-10 flex-1"
-                  aria-label={t(`cat.${c}`)}
-                >
-                  <option value="">{t("common.dash")}</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </Select>
-              </form>
-            ))}
-          </div>
-        </Card>
+        <ResponsiblesCard members={members} responsibles={responsibles} />
       )}
     </div>
+  );
+}
+
+function ResponsiblesCard({
+  members,
+  responsibles,
+}: {
+  members: Member[];
+  responsibles: Record<string, string>;
+}) {
+  const t = useT();
+  // Controlled values: React 19 resets uncontrolled fields after form
+  // actions, which made the selection visually "disappear".
+  const [values, setValues] = useState<Record<string, string>>(responsibles);
+  const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  const save = (category: OrderCategory, profileId: string) => {
+    const previous = values[category] ?? "";
+    setValues((v) => ({ ...v, [category]: profileId }));
+    setError(null);
+    startTransition(async () => {
+      const res = await setOrderResponsible(category, profileId);
+      if (res?.error) {
+        setValues((v) => ({ ...v, [category]: previous }));
+        setError(res.error);
+      }
+    });
+  };
+
+  return (
+    <Card className="p-4">
+      <h2 className="mb-3 font-medium text-slate-900">
+        {t("orders.responsibles")}
+      </h2>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {ORDER_CATEGORIES.map((c) => (
+          <div key={c} className="flex items-center gap-2">
+            <Badge
+              className={cn("w-24 shrink-0 justify-center", CATEGORY_BADGE[c])}
+            >
+              {t(`cat.${c}`)}
+            </Badge>
+            <Select
+              value={values[c] ?? ""}
+              onChange={(e) => save(c, e.target.value)}
+              className="h-10 flex-1"
+              aria-label={t(`cat.${c}`)}
+            >
+              <option value="">{t("common.dash")}</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ))}
+      </div>
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+    </Card>
   );
 }
 

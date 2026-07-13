@@ -1,34 +1,41 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/database.types";
 
 export type Profile = Tables<"profiles">;
 
+export type AuthUser = { id: string; email: string | null };
+
 export type AuthContext = {
-  user: User;
+  user: AuthUser;
   profile: Profile | null;
 };
 
 /**
  * Data Access Layer: returns the current user + profile, or null.
  * Memoized per-request with React cache().
+ *
+ * getClaims() verifies the JWT locally (asymmetric signing keys) instead
+ * of calling the Supabase Auth server on every request; on projects with
+ * legacy symmetric keys it falls back to a server check automatically.
  */
 export const getAuth = cache(async (): Promise<AuthContext | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .maybeSingle();
 
-  return { user, profile };
+  return {
+    user: { id: claims.sub, email: claims.email ?? null },
+    profile,
+  };
 });
 
 /** Require an authenticated user or redirect to /login. */

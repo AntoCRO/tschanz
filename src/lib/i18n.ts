@@ -46,6 +46,7 @@ const de = {
   "filter.newest": "Neuste zuerst",
   "filter.oldest": "Älteste zuerst",
   "filter.reset": "Filter zurücksetzen",
+  "filter.openOnly": "Nur offene Lektionen",
 
   // Login
   "login.subtitle": "Bitte melde dich an, um fortzufahren.",
@@ -72,6 +73,7 @@ const de = {
     "Lektion „{title}“ und alle zugehörigen Bewertungen löschen?",
   "events.empty": "Noch keine Lektionen vorhanden.",
   "events.noMatch": "Keine Lektionen gefunden.",
+  "events.allDone": "Alle Lektionen sind vollständig bewertet.",
   "events.titlePlaceholder": "z. B. Lektion 1",
   "events.create": "Lektion erstellen",
   "events.search": "Lektion suchen…",
@@ -244,6 +246,7 @@ const fr = {
   "filter.newest": "Plus récentes d’abord",
   "filter.oldest": "Plus anciennes d’abord",
   "filter.reset": "Réinitialiser",
+  "filter.openOnly": "Seulement les leçons ouvertes",
 
   // Login
   "login.subtitle": "Connecte-toi pour continuer.",
@@ -271,6 +274,7 @@ const fr = {
     "Supprimer la leçon « {title} » et toutes les évaluations associées ?",
   "events.empty": "Aucune leçon pour l’instant.",
   "events.noMatch": "Aucune leçon trouvée.",
+  "events.allDone": "Toutes les leçons sont entièrement évaluées.",
   "events.titlePlaceholder": "p. ex. Leçon 1",
   "events.create": "Créer la leçon",
   "events.search": "Rechercher une leçon…",

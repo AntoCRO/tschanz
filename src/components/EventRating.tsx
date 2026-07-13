@@ -225,7 +225,10 @@ export function EventRating({
       r.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
 
-  const ratedCount = Object.values(state).filter((s) => s.score !== null).length;
+  // Absent recruits count as covered — they can't be rated.
+  const ratedCount = Object.values(state).filter(
+    (s) => s.score !== null || s.present === false,
+  ).length;
   const total = recruits.length;
 
   return (

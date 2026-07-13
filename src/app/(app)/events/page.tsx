@@ -39,15 +39,24 @@ export default async function EventsPage() {
     .select("event_id, recruit_id")
     .not("score", "is", null);
 
+  // Absent recruits count as covered too — they can't be rated, so a
+  // Lektion can still reach 100%.
+  const { data: absences } = await supabase
+    .from("attendance")
+    .select("event_id, recruit_id")
+    .eq("present", false);
+
   const { data: membersData } = await supabase
     .from("profiles")
     .select("id, full_name, email")
     .order("full_name");
 
-  const ratedByEvent: Record<string, number> = {};
-  for (const r of scoredRatings ?? []) {
-    if (!recruitIds.has(r.recruit_id)) continue;
-    ratedByEvent[r.event_id] = (ratedByEvent[r.event_id] ?? 0) + 1;
+  const coveredByEvent: Record<string, Set<string>> = {};
+  for (const rows of [scoredRatings ?? [], absences ?? []]) {
+    for (const r of rows) {
+      if (!recruitIds.has(r.recruit_id)) continue;
+      (coveredByEvent[r.event_id] ??= new Set()).add(r.recruit_id);
+    }
   }
 
   const rows = (eventsRaw ?? []) as unknown as EventRaw[];
@@ -58,7 +67,7 @@ export default async function EventsPage() {
     event_time: e.event_time,
     chef_id: e.chef_id,
     chefName: e.chef?.full_name || e.chef?.email || null,
-    done: ratedByEvent[e.id] ?? 0,
+    done: coveredByEvent[e.id]?.size ?? 0,
     total: recruitCount,
   }));
 

@@ -16,29 +16,29 @@ export default async function EventDetailPage({
   const t = await getServerT();
   const supabase = await createClient();
 
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, title, event_date, event_time")
-    .eq("id", id)
-    .maybeSingle();
-  if (!event) notFound();
-
-  const { data: recruits } = await supabase
-    .from("recruits")
-    .select("id, name, language")
-    .eq("is_active", true)
-    .order("name");
-
   // Shared ratings: load everyone's (one per recruit), not just the current user's.
-  const { data: ratings } = await supabase
-    .from("ratings")
-    .select("recruit_id, score, bemerkungen")
-    .eq("event_id", id);
-
-  const { data: attendance } = await supabase
-    .from("attendance")
-    .select("recruit_id, present")
-    .eq("event_id", id);
+  const [{ data: event }, { data: recruits }, { data: ratings }, { data: attendance }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("id, title, event_date, event_time")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("recruits")
+        .select("id, name, language")
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("ratings")
+        .select("recruit_id, score, bemerkungen")
+        .eq("event_id", id),
+      supabase
+        .from("attendance")
+        .select("recruit_id, present")
+        .eq("event_id", id),
+    ]);
+  if (!event) notFound();
 
   const initialRatings: Record<
     string,

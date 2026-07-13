@@ -17,47 +17,35 @@ export default async function EventsPage() {
   const t = await getServerT();
   const supabase = await createClient();
 
-  const { data: eventsRaw } = await supabase
-    .from("events")
-    .select(
-      "id, title, event_date, event_time, chef_id, chef:profiles!events_chef_id_fkey(full_name, email)",
-    )
-    .order("event_date", { ascending: false })
-    .order("event_time", { ascending: false });
+  // One round trip: the event_progress view aggregates "covered" recruits
+  // (rated by anyone OR marked absent) per Lektion in the database.
+  const [
+    { data: eventsRaw },
+    { count: recruitCount },
+    { data: progressRows },
+    { data: membersData },
+  ] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        "id, title, event_date, event_time, chef_id, chef:profiles!events_chef_id_fkey(full_name, email)",
+      )
+      .order("event_date", { ascending: false })
+      .order("event_time", { ascending: false }),
+    supabase
+      .from("recruits")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true),
+    supabase.from("event_progress").select("event_id, covered"),
+    supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .order("full_name"),
+  ]);
 
-  // Active recruits are the denominator.
-  const { data: activeRecruits } = await supabase
-    .from("recruits")
-    .select("id")
-    .eq("is_active", true);
-  const recruitIds = new Set((activeRecruits ?? []).map((r) => r.id));
-  const recruitCount = recruitIds.size;
-
-  // Shared progress: count recruits that have a rating — by ANYONE.
-  const { data: scoredRatings } = await supabase
-    .from("ratings")
-    .select("event_id, recruit_id")
-    .not("score", "is", null);
-
-  // Absent recruits count as covered too — they can't be rated, so a
-  // Lektion can still reach 100%.
-  const { data: absences } = await supabase
-    .from("attendance")
-    .select("event_id, recruit_id")
-    .eq("present", false);
-
-  const { data: membersData } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .order("full_name");
-
-  const coveredByEvent: Record<string, Set<string>> = {};
-  for (const rows of [scoredRatings ?? [], absences ?? []]) {
-    for (const r of rows) {
-      if (!recruitIds.has(r.recruit_id)) continue;
-      (coveredByEvent[r.event_id] ??= new Set()).add(r.recruit_id);
-    }
-  }
+  const coveredByEvent = new Map(
+    (progressRows ?? []).map((p) => [p.event_id, p.covered ?? 0]),
+  );
 
   const rows = (eventsRaw ?? []) as unknown as EventRaw[];
   const events = rows.map((e) => ({
@@ -67,8 +55,8 @@ export default async function EventsPage() {
     event_time: e.event_time,
     chef_id: e.chef_id,
     chefName: e.chef?.full_name || e.chef?.email || null,
-    done: coveredByEvent[e.id]?.size ?? 0,
-    total: recruitCount,
+    done: coveredByEvent.get(e.id) ?? 0,
+    total: recruitCount ?? 0,
   }));
 
   const members = (membersData ?? []).map((m) => ({

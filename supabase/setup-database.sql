@@ -104,6 +104,12 @@ create table if not exists public.orders (
   created_at timestamptz not null default now()
 );
 
+-- Verantwortliche Person pro Bestellkategorie (vom Admin zugewiesen).
+create table if not exists public.order_responsibles (
+  category text primary key check (category in ('munition', 'material', 'fahrzeug', 'platz', 'zwipf')),
+  profile_id uuid not null references public.profiles (id) on delete cascade
+);
+
 -- 3) updated_at automatisch pflegen (für die Upsert-Tabellen).
 create or replace function public.tschanz_touch_updated_at()
 returns trigger
@@ -134,6 +140,7 @@ alter table public.ratings    enable row level security;
 alter table public.attendance enable row level security;
 alter table public.sidequests enable row level security;
 alter table public.orders     enable row level security;
+alter table public.order_responsibles enable row level security;
 
 drop policy if exists "authenticated_all" on public.recruits;
 create policy "authenticated_all" on public.recruits
@@ -152,6 +159,9 @@ create policy "authenticated_all" on public.sidequests
   for all to authenticated using (true) with check (true);
 drop policy if exists "authenticated_all" on public.orders;
 create policy "authenticated_all" on public.orders
+  for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated_all" on public.order_responsibles;
+create policy "authenticated_all" on public.order_responsibles
   for all to authenticated using (true) with check (true);
 
 -- 5) Realtime: andere Geräte sehen Bewertungs-/Anwesenheits-Änderungen live.

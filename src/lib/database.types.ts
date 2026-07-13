@@ -69,6 +69,21 @@ export type Database = {
         }
         Relationships: []
       }
+      order_responsibles: {
+        Row: {
+          category: string
+          profile_id: string
+        }
+        Insert: {
+          category: string
+          profile_id: string
+        }
+        Update: {
+          category?: string
+          profile_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           category: string

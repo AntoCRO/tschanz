@@ -6,11 +6,19 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { Button } from "@/components/ui";
 import { useT } from "@/components/LanguageProvider";
 
-export function Header({ name, isAdmin }: { name: string; isAdmin: boolean }) {
+export function Header({
+  name,
+  isAdmin,
+  openOrders,
+}: {
+  name: string;
+  isAdmin: boolean;
+  openOrders: number;
+}) {
   const t = useT();
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="border-b border-slate-200 bg-white print:hidden">
       <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-4 py-3">
         <span className="font-semibold text-slate-900">{t("app.name")}</span>
         <div className="flex items-center gap-2">
@@ -27,7 +35,7 @@ export function Header({ name, isAdmin }: { name: string; isAdmin: boolean }) {
         </div>
       </div>
       <div className="mx-auto max-w-4xl px-4 pb-2">
-        <NavTabs />
+        <NavTabs openOrders={openOrders} />
       </div>
     </header>
   );

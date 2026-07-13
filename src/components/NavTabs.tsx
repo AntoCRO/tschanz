@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useT } from "@/components/LanguageProvider";
 import { cn } from "@/lib/utils";
 
-export function NavTabs() {
+export function NavTabs({ openOrders = 0 }: { openOrders?: number }) {
   const pathname = usePathname();
   const t = useT();
 
@@ -15,7 +15,7 @@ export function NavTabs() {
     { href: "/admin/recruits", label: t("nav.recruits") },
     { href: "/admin/team", label: t("nav.team") },
     { href: "/sidequests", label: t("nav.sidequest") },
-    { href: "/bestellungen", label: t("nav.orders") },
+    { href: "/bestellungen", label: t("nav.orders"), badge: openOrders },
   ];
 
   return (
@@ -35,6 +35,11 @@ export function NavTabs() {
             )}
           >
             {it.label}
+            {(it.badge ?? 0) > 0 && (
+              <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-semibold text-white">
+                {it.badge}
+              </span>
+            )}
           </Link>
         );
       })}
